@@ -7,10 +7,14 @@
     "start": "node src/index.js"
   },
   "dependencies": {
+    "@prisma/client": "^6.17.1",
     "amqplib": "^0.10.4",
     "express": "^4.19.2",
     "morgan": "^1.10.0",
-    "node-fetch": "^3.3.2",
-    "nanoid": "^5.0.7"
+    "nanoid": "^5.0.7",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.17.1"
   }
 }
