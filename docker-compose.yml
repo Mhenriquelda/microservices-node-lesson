@@ -1,0 +1,58 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ms_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  users:
+    build:
+      context: .                     # << agora é a raiz do projeto
+      dockerfile: ./services/users-service/Dockerfile
+    container_name: ms_users
+    environment:
+      PORT: 3001
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      EXCHANGE: app.topic
+    depends_on:
+      - rabbitmq
+    ports:
+      - "3001:3001"
+
+  orders:
+    build:
+      context: .                     # << agora é a raiz do projeto
+      dockerfile: ./services/orders-service/Dockerfile
+    container_name: ms_orders
+    environment:
+      PORT: 3002
+      USERS_BASE_URL: http://users:3001
+      HTTP_TIMEOUT_MS: 2000
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      EXCHANGE: app.topic
+      QUEUE: orders.q
+      ROUTING_KEY_USER_CREATED: user.created
+    depends_on:
+      - rabbitmq
+      - users
+    ports:
+      - "3002:3002"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    container_name: ms_gateway
+    environment:
+      PORT: 3000
+      USERS_URL: http://users:3001
+      ORDERS_URL: http://orders:3002
+    depends_on:
+      - users
+      - orders
+    ports:
+      - "3000:3000"
